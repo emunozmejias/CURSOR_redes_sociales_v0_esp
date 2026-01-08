@@ -1,0 +1,265 @@
+# Reglas del Proyecto: SocialApp - Red Social en Español
+
+## Para este proyecto, usaremos el siguiente contenido para el archivo .cursorrules:
+Eres experto en TypeScript, Next.js App Router, React y Tailwind. Sigue la documentación de @Next.js 14 App Router para la obtención, renderización y enrutamiento de datos. Usa el SDK de IA de Vercel para gestionar las interacciones de IA y la transmisión de respuestas.
+
+- app contiene los archivos page.tsx y layout.tsx.
+- app/api contiene las rutas de la API.
+- app/components contiene todos los componentes de React.
+- app/lib contiene el resto del código, como ayudantes, ganchos y contextos.
+
+## Descripción del Proyecto
+Esta es una aplicación de red social construida con Next.js 16 y React 19. La interfaz está completamente en español y sigue un diseño moderno con componentes de shadcn/ui.
+
+## Stack Tecnológico
+
+### Versiones Principales
+- Next.js: 16.0.10 (App Router)
+- React: 19.2.0
+- TypeScript: 5.x
+- Tailwind CSS: 4.1.9
+- Node.js: 20.x (recomendado)
+
+### Librerías UI
+- shadcn/ui (estilo "new-york")
+- Radix UI (componentes primitivos)
+- Lucide React (iconos)
+
+### Utilidades
+- clsx y class-variance-authority (clases CSS)
+- tailwind-merge (fusión de clases)
+- date-fns (fechas)
+- zod (validación)
+- react-hook-form (formularios)
+
+## Estructura del Proyecto
+
+```
+├── app/                    # App Router de Next.js
+│   ├── globals.css        # Estilos globales y variables CSS
+│   ├── layout.tsx         # Layout raíz
+│   └── page.tsx           # Página principal (estado global)
+├── components/            # Componentes React
+│   ├── ui/               # Componentes shadcn/ui reutilizables
+│   └── *.tsx             # Componentes de la aplicación
+├── lib/                   # Utilidades y servicios
+│   ├── auth.ts           # Servicio de autenticación
+│   └── utils.ts          # Helper cn() para clases
+├── types/                 # Definiciones de tipos TypeScript
+└── public/               # Archivos estáticos
+```
+
+## Convenciones de Código
+
+### Idioma
+- **UI y textos visibles**: SIEMPRE en español
+- **Código (variables, funciones, comentarios)**: En inglés
+- **Nombres de archivos y componentes**: En inglés
+
+### Componentes React
+- Usar "use client" para componentes con estado o efectos
+- Preferir componentes funcionales con hooks
+- Exportar componentes con `export function ComponentName()`
+- Props tipadas con interfaces de TypeScript
+
+```tsx
+// Ejemplo de componente
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+
+interface MyComponentProps {
+  title: string
+  onAction: () => void
+}
+
+export function MyComponent({ title, onAction }: MyComponentProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  
+  return (
+    <div>
+      <h1>{title}</h1>
+      <Button onClick={onAction}>Acción</Button>
+    </div>
+  )
+}
+```
+
+### Estilos con Tailwind CSS
+- Usar clases de Tailwind directamente
+- Usar variables CSS definidas en globals.css para colores del tema
+- Usar el helper `cn()` de lib/utils.ts para clases condicionales
+- Colores del tema disponibles:
+  - `bg-background`, `text-foreground` (base)
+  - `bg-card`, `text-card-foreground` (tarjetas)
+  - `bg-primary`, `text-primary-foreground` (primario)
+  - `bg-muted`, `text-muted-foreground` (atenuado)
+  - `text-accent-blue`, `text-accent-teal`, `text-accent-coral` (acentos)
+  - `bg-destructive` (acciones destructivas)
+
+### Tipos e Interfaces
+- Definir tipos en archivos separados en `/types`
+- Usar `interface` para props de componentes
+- Usar `type` para uniones y tipos utilitarios
+- Importar tipos con `import type { ... }`
+
+```tsx
+// Correcto
+import type { Post } from "@/types/post"
+import type { User } from "@/lib/auth"
+```
+
+### Imports
+- Usar alias `@/` para imports absolutos
+- Orden de imports:
+  1. React y hooks
+  2. Librerías externas
+  3. Componentes UI (@/components/ui/*)
+  4. Componentes de la app (@/components/*)
+  5. Tipos
+  6. Utilidades
+
+### Estado y Datos
+- Estado global manejado en `app/page.tsx`
+- Pasar datos y handlers como props a componentes hijos
+- Usuarios persistidos en localStorage
+- Posts actualmente solo en memoria (estado React)
+
+## Componentes UI (shadcn/ui)
+
+### Componentes Disponibles
+Los componentes están en `/components/ui/`:
+- `button.tsx` - Botones con variantes
+- `card.tsx` - Tarjetas (Card, CardHeader, CardContent, CardFooter)
+- `input.tsx` - Campos de texto
+- `textarea.tsx` - Áreas de texto
+- `dialog.tsx` - Modales
+- `dropdown-menu.tsx` - Menús desplegables
+- `avatar.tsx` - Avatares de usuario
+- `alert.tsx` - Alertas
+- `label.tsx` - Etiquetas de formulario
+
+### Uso de Componentes
+```tsx
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+```
+
+### Variantes de Button
+- `default` - Botón primario
+- `destructive` - Acciones destructivas (rojo)
+- `outline` - Con borde
+- `secondary` - Secundario
+- `ghost` - Sin fondo
+- `link` - Estilo enlace
+
+## Patrones de la Aplicación
+
+### Autenticación
+```tsx
+import { AuthService, type User } from "@/lib/auth"
+
+// Registrar
+const result = await AuthService.register(email, password)
+
+// Login
+const result = await AuthService.login(email, password)
+
+// Logout
+AuthService.logout()
+
+// Obtener usuario actual
+const user = AuthService.getCurrentUser()
+```
+
+### Manejo de Posts
+```tsx
+// Tipo de Post
+interface Post {
+  id: string
+  author: {
+    name: string
+    avatar: string
+    username: string  // Formato: "@username"
+  }
+  content: string
+  image?: string
+  likes: number
+  liked?: boolean
+  comments: Comment[]
+  timestamp: string
+}
+
+// Crear nuevo post
+const newPost: Post = {
+  id: `post-${Date.now()}`,
+  author: {
+    name: currentUser.username,
+    avatar: "/user-avatar.jpg",
+    username: `@${currentUser.username}`,
+  },
+  content: "Contenido del post",
+  likes: 0,
+  comments: [],
+  timestamp: "ahora",
+}
+```
+
+### Verificación de Autoría
+```tsx
+// Verificar si el usuario actual es el autor de un post
+const isAuthor = currentUser && `@${currentUser.username}` === post.author.username
+```
+
+## Comandos del Proyecto
+
+```bash
+# Desarrollo
+npm run dev
+
+# Build de producción
+npm run build
+
+# Iniciar producción
+npm start
+
+# Linting
+npm run lint
+```
+
+## Buenas Prácticas
+
+### DO (Hacer)
+- ✅ Usar componentes de shadcn/ui para UI consistente
+- ✅ Tipar todas las props y estados
+- ✅ Mantener textos de UI en español
+- ✅ Usar variables CSS del tema para colores
+- ✅ Manejar estados de carga y error
+- ✅ Usar "use client" solo cuando sea necesario
+
+### DON'T (No hacer)
+- ❌ No crear componentes UI desde cero (usar shadcn/ui)
+- ❌ No usar colores hardcodeados (usar variables del tema)
+- ❌ No mezclar español e inglés en textos visibles
+- ❌ No usar `any` en TypeScript
+- ❌ No olvidar manejar el caso de usuario no autenticado
+
+## Consideraciones de Seguridad
+
+⚠️ **NOTA**: Esta es una aplicación de demostración. En producción:
+- El hash de contraseñas debe hacerse en el backend con bcrypt
+- La autenticación debe usar JWT o sesiones del servidor
+- Los datos deben persistirse en una base de datos real
+- Validar y sanitizar todas las entradas del usuario
+
+## Extensiones Recomendadas para VS Code / Cursor
+
+- ESLint
+- Prettier
+- Tailwind CSS IntelliSense
+- TypeScript Vue Plugin (Volar) - para mejor soporte TS
+- PostCSS Language Support
+
