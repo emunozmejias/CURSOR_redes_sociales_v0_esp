@@ -7,13 +7,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { PostCard } from "@/components/post-card"
 import type { User } from "@/lib/auth"
+import type { Post } from "@/types/post"
 
 interface ProfileProps {
   currentUser: User | null
+  posts: Post[]
+  onLike: (postId: string) => void
+  onComment: (postId: string, comment: string) => void
+  onDelete: (postId: string) => void
+  onEdit: (postId: string, newContent: string, newImage?: string) => void
 }
 
-export function Profile({ currentUser }: ProfileProps) {
+export function Profile({ currentUser, posts, onLike, onComment, onDelete, onEdit }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState({
     bio: "¡Hola! Me encanta compartir momentos y conectar con personas. 🌟",
@@ -150,7 +157,9 @@ export function Profile({ currentUser }: ProfileProps) {
                   <span className="text-muted-foreground ml-1">Siguiendo</span>
                 </div>
                 <div>
-                  <span className="font-bold text-foreground">{profile.posts}</span>
+                  <span className="font-bold text-foreground">
+                    {posts.filter((post) => post.author.username === `@${currentUser.username}`).length}
+                  </span>
                   <span className="text-muted-foreground ml-1">Publicaciones</span>
                 </div>
               </div>
@@ -161,9 +170,35 @@ export function Profile({ currentUser }: ProfileProps) {
 
       <div>
         <h3 className="text-xl font-bold mb-4">Tus Publicaciones</h3>
-        <p className="text-muted-foreground text-center py-8">
-          Tus publicaciones aparecerán aquí una vez que crees algunas.
-        </p>
+        {(() => {
+          const userPosts = posts.filter(
+            (post) => post.author.username === `@${currentUser.username}`
+          )
+          
+          if (userPosts.length === 0) {
+            return (
+              <p className="text-muted-foreground text-center py-8">
+                Tus publicaciones aparecerán aquí una vez que crees algunas.
+              </p>
+            )
+          }
+          
+          return (
+            <div className="space-y-4">
+              {userPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={onLike}
+                  onComment={onComment}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  currentUser={currentUser}
+                />
+              ))}
+            </div>
+          )
+        })()}
       </div>
     </div>
   )

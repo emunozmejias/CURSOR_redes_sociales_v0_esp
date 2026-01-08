@@ -37,7 +37,7 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
   const [editImage, setEditImage] = useState(post.image || "")
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const isAuthor = currentUser?.username === post.author.username
+  const isAuthor = currentUser && `@${currentUser.username}` === post.author.username
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()

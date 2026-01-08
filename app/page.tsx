@@ -184,7 +184,16 @@ export default function SocialMediaApp() {
             currentUser={currentUser}
           />
         )}
-        {activeTab === "perfil" && <Profile currentUser={currentUser} />}
+        {activeTab === "perfil" && (
+          <Profile
+            currentUser={currentUser}
+            posts={posts}
+            onLike={handleLike}
+            onComment={handleComment}
+            onDelete={handleDeletePost}
+            onEdit={handleEditPost}
+          />
+        )}
         {activeTab === "crear" && currentUser && (
           <CreatePost
             currentUser={currentUser}
