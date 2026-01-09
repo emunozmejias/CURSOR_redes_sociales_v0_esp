@@ -3,29 +3,28 @@
 import type React from "react"
 
 import { useState } from "react"
-import { ImageIcon, Send } from "lucide-react"
+import { ImageIcon, Send, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { Post } from "@/types/post"
-import type { User } from "@/lib/auth"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { createPost } from "@/lib/firebase-posts"
+import type { User } from "@/lib/firebase-auth"
 
 interface CreatePostProps {
-  onPostCreated: (post: Post) => void
   currentUser: User
+  onPostCreated?: () => void
 }
 
-export function CreatePost({ onPostCreated, currentUser }: CreatePostProps) {
+export function CreatePost({ currentUser, onPostCreated }: CreatePostProps) {
   const [content, setContent] = useState("")
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState("")
+  const [showImageInput, setShowImageInput] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleImageSelect = () => {
-    // En una aplicación real, aquí abrirías un selector de archivos
-    const mockImage = "/nature-landscape.jpg"
-    setSelectedImage(mockImage)
-  }
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,30 +32,34 @@ export function CreatePost({ onPostCreated, currentUser }: CreatePostProps) {
     if (!content.trim()) return
 
     setIsSubmitting(true)
+    setError("")
 
-    // Simulamos una petición a la API
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const result = await createPost(
+      currentUser.id,
+      currentUser.displayName || currentUser.username,
+      currentUser.username,
+      currentUser.photoURL || "/user-avatar.jpg",
+      content.trim(),
+      imageUrl.trim() || undefined
+    )
 
-    const newPost: Post = {
-      id: `post-${Date.now()}`,
-      author: {
-        name: currentUser.username,
-        avatar: "/user-avatar.jpg",
-        username: `@${currentUser.username}`,
-      },
-      content,
-      image: selectedImage || undefined,
-      likes: 0,
-      comments: [],
-      timestamp: "ahora",
+    if (result.success) {
+      // Resetear el formulario
+      setContent("")
+      setImageUrl("")
+      setShowImageInput(false)
+      setSuccess(true)
+      
+      // Ocultar mensaje de éxito después de 3 segundos
+      setTimeout(() => setSuccess(false), 3000)
+      
+      // Notificar al componente padre
+      onPostCreated?.()
+    } else {
+      setError(result.error || "Error al crear la publicación")
     }
 
-    // Resetear el formulario
-    setContent("")
-    setSelectedImage(null)
     setIsSubmitting(false)
-
-    onPostCreated(newPost)
   }
 
   return (
@@ -68,9 +71,24 @@ export function CreatePost({ onPostCreated, currentUser }: CreatePostProps) {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {success && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <AlertDescription>¡Publicación creada exitosamente!</AlertDescription>
+              </Alert>
+            )}
+
             <div className="flex gap-4">
               <Avatar>
-                <AvatarImage src="/user-avatar.jpg" alt={currentUser.username} />
+                <AvatarImage 
+                  src={currentUser.photoURL || "/user-avatar.jpg"} 
+                  alt={currentUser.username} 
+                />
                 <AvatarFallback>{currentUser.username[0].toUpperCase()}</AvatarFallback>
               </Avatar>
 
@@ -81,24 +99,49 @@ export function CreatePost({ onPostCreated, currentUser }: CreatePostProps) {
                   onChange={(e) => setContent(e.target.value)}
                   rows={4}
                   className="resize-none"
+                  maxLength={500}
                 />
 
-                {selectedImage && (
-                  <div className="relative">
-                    <img
-                      src={selectedImage || "/placeholder.svg"}
-                      alt="Preview"
-                      className="w-full rounded-lg object-cover max-h-96"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setSelectedImage(null)}
-                      className="absolute top-2 right-2"
-                    >
-                      Quitar
-                    </Button>
+                <div className="text-xs text-muted-foreground text-right">
+                  {content.length}/500 caracteres
+                </div>
+
+                {showImageInput && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="url"
+                        placeholder="URL de la imagen (https://...)"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setShowImageInput(false)
+                          setImageUrl("")
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {imageUrl && (
+                      <div className="relative">
+                        <img
+                          src={imageUrl}
+                          alt="Vista previa"
+                          className="w-full rounded-lg object-cover max-h-96"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = "none"
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -107,14 +150,18 @@ export function CreatePost({ onPostCreated, currentUser }: CreatePostProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleImageSelect}
+                    onClick={() => setShowImageInput(!showImageInput)}
                     className="gap-2 bg-transparent"
                   >
                     <ImageIcon className="h-4 w-4" />
-                    Añadir Imagen
+                    {showImageInput ? "Ocultar imagen" : "Añadir Imagen"}
                   </Button>
 
-                  <Button type="submit" disabled={!content.trim() || isSubmitting} className="gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={!content.trim() || isSubmitting} 
+                    className="gap-2"
+                  >
                     {isSubmitting ? "Publicando..." : "Publicar"}
                     <Send className="h-4 w-4" />
                   </Button>

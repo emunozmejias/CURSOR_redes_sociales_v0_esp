@@ -1,5 +1,8 @@
+import type { Timestamp } from "firebase/firestore"
+
 export interface Post {
   id: string
+  authorId?: string
   author: {
     name: string
     avatar: string
@@ -9,8 +12,10 @@ export interface Post {
   image?: string
   likes: number
   liked?: boolean
+  likedBy?: string[]
   comments: Comment[]
   timestamp: string
+  createdAt?: Timestamp
 }
 
 export interface Comment {

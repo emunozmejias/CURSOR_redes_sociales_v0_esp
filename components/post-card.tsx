@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { Post } from "@/types/post"
-import type { User } from "@/lib/auth"
+import type { User } from "@/lib/firebase-auth"
 
 interface PostCardProps {
   post: Post
@@ -37,7 +37,11 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
   const [editImage, setEditImage] = useState(post.image || "")
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const isAuthor = currentUser && `@${currentUser.username}` === post.author.username
+  // Verificar si el usuario actual es el autor del post
+  const isAuthor = currentUser && (
+    post.authorId === currentUser.id || 
+    `@${currentUser.username}` === post.author.username
+  )
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +53,7 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
 
   const handleEdit = () => {
     if (editContent.trim()) {
-      onEdit(post.id, editContent, editImage)
+      onEdit(post.id, editContent, editImage || undefined)
       setIsEditing(false)
     }
   }
@@ -57,6 +61,12 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
   const handleDelete = () => {
     onDelete(post.id)
     setShowDeleteDialog(false)
+  }
+
+  const handleLikeClick = () => {
+    if (currentUser) {
+      onLike(post.id)
+    }
   }
 
   return (
@@ -110,14 +120,21 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onLike(post.id)}
+              onClick={handleLikeClick}
+              disabled={!currentUser}
               className={`gap-2 ${post.liked ? "text-accent-coral" : ""}`}
+              title={currentUser ? "Me gusta" : "Inicia sesión para dar like"}
             >
               <Heart className={`h-4 w-4 ${post.liked ? "fill-current" : ""}`} />
               <span>{post.likes}</span>
             </Button>
 
-            <Button variant="ghost" size="sm" onClick={() => setShowComments(!showComments)} className="gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowComments(!showComments)} 
+              className="gap-2"
+            >
               <MessageCircle className="h-4 w-4" />
               <span>{post.comments.length}</span>
             </Button>
@@ -135,17 +152,23 @@ export function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUse
                 </div>
               ))}
 
-              <form onSubmit={handleSubmitComment} className="flex gap-2">
-                <Input
-                  placeholder="Escribe un comentario..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" size="icon" disabled={!commentText.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
+              {currentUser ? (
+                <form onSubmit={handleSubmitComment} className="flex gap-2">
+                  <Input
+                    placeholder="Escribe un comentario..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="icon" disabled={!commentText.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  Inicia sesión para comentar
+                </p>
+              )}
             </div>
           )}
         </CardFooter>

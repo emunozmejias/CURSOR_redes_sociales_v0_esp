@@ -3,7 +3,7 @@
 import { Home, User, PlusSquare, LogOut, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { User as UserType } from "@/lib/auth"
+import type { User as UserType } from "@/lib/firebase-auth"
 
 interface HeaderProps {
   activeTab: "inicio" | "perfil" | "crear"
@@ -57,7 +57,7 @@ export function Header({ activeTab, setActiveTab, currentUser, onLogout, onLogin
           {currentUser ? (
             <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/user-avatar.jpg" alt={currentUser.username} />
+                <AvatarImage src={currentUser.photoURL || "/user-avatar.jpg"} alt={currentUser.username} />
                 <AvatarFallback>{currentUser.username[0].toUpperCase()}</AvatarFallback>
               </Avatar>
               <span className="hidden md:inline text-sm text-foreground">{currentUser.username}</span>
