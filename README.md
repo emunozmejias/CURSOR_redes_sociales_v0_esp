@@ -126,6 +126,188 @@ Esta aplicación está configurada con la configuración existente de Firebase. 
 PASO 9
 Use cursor para quitar todos los errores de las integración con firebase y los warning usando una screenshot de pantalla desde chrome con las herramientas de desarrolador abiertas y la imagen del browser.
 
+PASO 10
+Documentacion para completar en el readme.
+
+PROMPT:
+Explicame la estructura del proyecto y sus componentes. Explicame si existe un frontend y un backend definido para este proyecto y en que tecnologias estan construidos
+
+#############################################################
+
+📚 Estructura del Proyecto SocialApp
+🏗️ Arquitectura General
+Este proyecto utiliza una arquitectura Serverless/JAMstack donde:
+Aspecto	Tecnología	Descripción
+Frontend	Next.js 16 + React 19	Interfaz de usuario completa
+Backend	Firebase (BaaS)	Backend as a Service
+Base de Datos	Firestore	Base de datos NoSQL en la nube
+Autenticación	Firebase Auth	Servicio de autenticación
+Estilos	Tailwind CSS 4	Framework de CSS utility-first
+Lenguaje	TypeScript 5	JavaScript con tipos estáticos
+
+
+┌─────────────────────────────────────────────────────────────────┐
+│                         NAVEGADOR                               │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                    NEXT.JS (Frontend)                     │  │
+│  │  • React Components                                       │  │
+│  │  • Client-side rendering                                  │  │
+│  │  • Tailwind CSS                                           │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ SDK de Firebase
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    FIREBASE (Backend/Cloud)                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐  │
+│  │  Firebase Auth  │  │    Firestore    │  │    Storage     │  │
+│  │  (Autenticación)│  │  (Base de Datos)│  │   (Archivos)   │  │
+│  └─────────────────┘  └─────────────────┘  └────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+📁 Estructura de Carpetas
+
+cursor-redes-sociales-v0-esp/
+│
+├── 📂 app/                      # ← RUTAS (Next.js App Router)
+│   ├── globals.css             # Estilos globales + variables CSS
+│   ├── layout.tsx              # Layout raíz (envuelve toda la app)
+│   └── page.tsx                # Página principal (/)
+│
+├── 📂 components/               # ← COMPONENTES REACT
+│   ├── 📂 ui/                  # Componentes UI reutilizables (shadcn/ui)
+│   │   ├── alert.tsx
+│   │   ├── avatar.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dialog.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   └── textarea.tsx
+│   │
+│   ├── auth-modal.tsx          # Modal de login/registro
+│   ├── create-post.tsx         # Formulario crear publicación
+│   ├── feed.tsx                # Feed de publicaciones
+│   ├── footer.tsx              # Pie de página
+│   ├── header.tsx              # Cabecera con navegación
+│   ├── post-card.tsx           # Tarjeta de publicación individual
+│   └── profile.tsx             # Perfil del usuario
+│
+├── 📂 lib/                      # ← SERVICIOS Y UTILIDADES
+│   ├── firebase.ts             # Configuración de Firebase
+│   ├── firebase-auth.ts        # Servicio de autenticación
+│   ├── firebase-posts.ts       # Servicio de publicaciones (CRUD)
+│   ├── auth-context.tsx        # Contexto React para autenticación
+│   ├── auth.ts                 # (Legacy) Servicio auth con localStorage
+│   └── utils.ts                # Utilidades (helper cn())
+│
+├── 📂 types/                    # ← TIPOS TYPESCRIPT
+│   └── post.ts                 # Interfaces Post y Comment
+│
+├── 📂 public/                   # ← ARCHIVOS ESTÁTICOS
+│   └── *.jpg, *.png, *.svg     # Imágenes y avatares
+│
+└── 📄 Archivos de configuración
+    ├── package.json            # Dependencias
+    ├── tsconfig.json           # Configuración TypeScript
+    ├── next.config.ts          # Configuración Next.js
+    ├── components.json         # Configuración shadcn/ui
+    └── .env.local              # Variables de entorno (Firebase)
+
+🧩 Componentes Principales
+1. Página Principal (app/page.tsx)
+
+┌─────────────────────────────────────────┐
+│  AuthProvider (Contexto)                │
+│  ┌───────────────────────────────────┐  │
+│  │  Header (Navegación)              │  │
+│  ├───────────────────────────────────┤  │
+│  │  Contenido según tab activo:      │  │
+│  │  • Feed (Inicio)                  │  │
+│  │  • Profile (Perfil)               │  │
+│  │  • CreatePost (Crear)             │  │
+│  ├───────────────────────────────────┤  │
+│  │  Footer                           │  │
+│  └───────────────────────────────────┘  │
+│  AuthModal (Modal flotante)             │
+└─────────────────────────────────────────┘
+
+2. Flujo de Datos
+
+┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  Componente  │────▶│  Servicio       │────▶│  Firebase    │
+│  (React)     │◀────│  (lib/*.ts)     │◀────│  (Cloud)     │
+└──────────────┘     └─────────────────┘     └──────────────┘
+     │                      │
+     │    useAuth()         │
+     └──────────────────────┘
+         AuthContext
+
+  🔧 Servicios (lib/)
+
+Archivo	Función
+firebase.ts	Inicializa Firebase (app, db, auth, storage)
+firebase-auth.ts	Login, registro, logout, perfiles de usuario
+firebase-posts.ts	CRUD de publicaciones, likes, comentarios
+auth-context.tsx	Contexto React para estado de autenticación global
+utils.ts	Helper cn() para clases CSS condicionales
+
+📊 Modelo de Datos (Firestore)
+
+Colección users
+
+{
+  username: string,
+  displayName: string,
+  bio: string,
+  location: string,
+  website: string,
+  photoURL: string | null,
+  createdAt: string
+}
+
+Colección posts
+
+{
+  authorId: string,
+  author: { name, username, avatar },
+  content: string,
+  image: string | null,
+  likes: number,
+  likedBy: string[],
+  commentCount: number,
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+}
+
+Colección comments
+
+{
+  postId: string,
+  authorId: string,
+  author: string,
+  content: string,
+  createdAt: Timestamp
+}
+
+🎨 Stack de UI
+
+Tecnología	Uso
+Tailwind CSS 4	Estilos utility-first
+shadcn/ui	Componentes pre-construidos (estilo "new-york")
+Radix UI	Primitivos accesibles (Dialog, Dropdown, etc.)
+Lucide React	Iconos
+
+📝 Resumen
+
+Pregunta	Respuesta
+¿Hay frontend?	✅ Sí - Next.js 16 + React 19 + TypeScript
+¿Hay backend tradicional?	❌ No - Se usa Firebase (BaaS)
+¿Dónde se almacenan los datos?	Firebase Firestore (nube)
+¿Cómo se autentica?	Firebase Authentication
+¿Es una SPA?	Híbrido - Next.js con App Router
 
 
 #############################################################
